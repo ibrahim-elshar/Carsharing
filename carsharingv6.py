@@ -29,14 +29,14 @@ print("##########################################")
 ###############################################################################
 a=np.random.randint(30, 45, N)
 a=a.astype(float)
-#a=np.array([31., 38., 37., 31., 42.]) # fixed uncomment to generate a random vector
+a=np.array([31., 38., 37., 31., 42.]) # fixed uncomment to generate a random vector
 print("The expected demand model (deterministic)")
 print("D(p)=a-b*p where a & b change randomly with")
 print("every run - for fixed values set manually") 
 print("a=" + str(a))
 b=np.random.randint(-5, -1, N)
 b=b.astype(float)
-#b=np.array([-3., -4., -5., -5., -3.]) # fixed uncomment to generate a random vector
+b=np.array([-3., -4., -5., -5., -3.]) # fixed uncomment to generate a random vector
 print("b="+ str(b))
 pmin=np.empty(N); pmin.fill(3.0)
 pmax=np.empty(N); pmax= a / (-1* b) -1 #set the price such that the expected demand cannot be negative
@@ -161,11 +161,11 @@ def eval_policy(state, action):
     low=-D(price)
     low=low.astype(int)
     high=-low+1
-    ranges=[]
-    prob=1   
-    for i in range(N):
-        ranges.append(range(low[i],high[i]))
-        prob *= 1./(high[i]-low[i]) 
+#    ranges=[]
+#    prob=1   
+#    for i in range(N):
+#        ranges.append(range(low[i],high[i]))
+#        prob *= 1./(high[i]-low[i]) 
     print("price="+str(price))
     n=0
     returns_prime=0
@@ -193,12 +193,10 @@ def eval_policy(state, action):
         #newState= newState.tolist()
         print("New state "+str(newState))
         state=newState
-        #print(lst.index(newState))
-#            returns +=prob * (rewards + disount_rate * stateValue[lst.index(newState)])
         returns_prime = returns
-        returns += pow(discount_rate,n) * rewards #+ disount_rate * stateValue[lst.index(newState)])
-        n += 1; print("n=" +str(n))
-        if np.abs(returns - returns_prime) < 1e-5:
+        returns += pow(discount_rate,n) * (rewards + 0.00001) #+ disount_rate * stateValue[lst.index(newState)])
+        n += 1; print("t=" +str(n))
+        if np.abs(returns - returns_prime) < 1e-10:
             flag=1
         print("returns=" +str(returns))
         print("###########################################")
