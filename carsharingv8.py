@@ -153,7 +153,7 @@ def randomize(n, num_terms):
     return [a[i+1] - a[i] for i in range(len(a) - 1)]
 ##############################################################
 # This function returns the  value of being in a state 
-# and taking a specific action     
+# and following a certain policy       
 ##############################################################
 T=np.random.randint(1,4, size=(N, N))
 kmax=np.max(T)
