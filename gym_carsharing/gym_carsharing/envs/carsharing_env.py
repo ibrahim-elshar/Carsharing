@@ -7,9 +7,10 @@ Created on Wed Jun 06 18:36:28 2018
 import gym
 import numpy as np
 from gym import spaces
-import random
+#import random
 import logging.config
 import mbox 
+from gym.utils import seeding
 
 
 class CarsharingEnv(gym.Env):
@@ -22,10 +23,10 @@ class CarsharingEnv(gym.Env):
            [3, 1, 2, 2, 2],
            [2, 3, 2, 2, 3],
            [1, 2, 3, 2, 2]])
-#    a_def=np.random.randint(30, 45, N).astype(float)
-#    b_def=np.random.randint(-5, -1, N).astype(float)
-    a_def=np.array([31., 38., 37., 31., 42.])
-    b_def=np.array([-3., -4., -5., -5., -3.])
+    a_def=np.random.randint(30, 45, N_def).astype(float)
+    b_def=np.random.randint(-5, -1, N_def).astype(float)
+#    a_def=np.array([31., 38., 37., 31., 42.])
+#    b_def=np.array([-3., -4., -5., -5., -3.])
     def __init__(self, num_stations=N_def, num_cars=MAX_CARS_def, min_price=pmin_def, travel_time_btwn_stat=T_def, a=a_def, b=b_def):
         self.__version__ = "0.1.0"
         logging.info("CarsharingEnv - Version {}".format(self.__version__))
@@ -48,7 +49,7 @@ class CarsharingEnv(gym.Env):
         for i in range(self.N):
             self.Nik.append([np.where(self.T[:,i] == k) for k in range(1, self.kmax+1)])
         self.action_space = spaces.Box(self.pmin, self.pmax, dtype=np.float32)
-        self.s=spaces.Box(0, self.kmax,shape=(self.N,self.kmax))
+        self.s=spaces.Box(0, self.kmax,shape=(self.N,self.kmax), dtype=np.uint8)
         self.x=mbox.MBox(self.MAX_CARS, self.N)
         self.observation_space = spaces.Tuple((self.x,self.s))
         self.t=0
@@ -62,6 +63,9 @@ class CarsharingEnv(gym.Env):
           p[i]=self.pmin [i] 
       d=np.empty(self.N)
       d= self.a + self.b*p
+      #######
+      #d=np.rint(d).astype(int)
+      #######
       return d
     # inverse of expected demand function; returns the price for a given expected demand vector
     def P(self, d):
@@ -75,7 +79,7 @@ class CarsharingEnv(gym.Env):
       return p
       
     
-    def _step(self, action):
+    def step(self, action):
         """
 
         Parameters
@@ -111,6 +115,7 @@ class CarsharingEnv(gym.Env):
 #        episode_over = self.status != hfo_py.IN_GAME
         assert self.action_space.contains(action)
         demand=np.rint(self.D(action)).astype(int)
+        #demand=self.D(action)
         low=-self.D(action)
         low=low.astype(int)
         high=-low+1
@@ -126,7 +131,7 @@ class CarsharingEnv(gym.Env):
                 else:
                     wij[j,:]=np.zeros(self.N)
         Twij=np.multiply(self.T, wij)    
-        reward =sum(np.sum(Twij, axis=1) * action)   
+        reward =np.around(sum(np.sum(Twij, axis=1) * action), 2)
         newx = self.x  +self.s[:,0] - w
         news=np.zeros((self.N,self.kmax))
         for i in range(self.N):
@@ -147,28 +152,17 @@ class CarsharingEnv(gym.Env):
         
         return ob, reward, done, {str(self.t)}
 
-    def _reset(self):
+    def reset(self):
         self.s=np.zeros((self.N, self.kmax))
         self.x=mbox.randomize(self.MAX_CARS, self.N)
         ob = (self.x, self.s)
         self.t=0
         return ob
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         pass
 
-#    def _take_action(self, action):
-#        pass
-#
-#    def _get_reward(self):
-#        """ Reward is given for XY. """
-#        if self.status == FOOBAR:
-#            return 1
-#        elif self.status == ABC:
-#            return self.somestate ** 2
-#        else:
-#            return 0
-    
-    def _seed(self, seed):
-        random.seed(seed)
-        np.random.seed
+
+    def _seed(self, seed=None):
+         self.np_random, seed = seeding.np_random(seed)
+         return [seed]

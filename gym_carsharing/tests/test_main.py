@@ -6,6 +6,7 @@ import unittest
 
 # 3rd party modules
 import gym
+import numpy as np
 
 # internal modules
 import gym_carsharing
@@ -17,4 +18,4 @@ class Environments(unittest.TestCase):
         env = gym.make('Carsharing-v0')
         env.seed(0)
         env.reset()
-        env.step(0)
+        env.step(np.array([3.5, 4, 3.25, 5, 5.3]))
