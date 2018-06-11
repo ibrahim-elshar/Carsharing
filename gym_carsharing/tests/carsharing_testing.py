@@ -17,7 +17,7 @@ print(observation, reward, done, info)
 
 env.reset()
 returns=0
-for i in range(11):
+for i in range(12):
     print(env.x)
     print(env.s)
     action = env.action_space.sample()
