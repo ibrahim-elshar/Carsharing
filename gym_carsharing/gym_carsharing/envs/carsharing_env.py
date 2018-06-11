@@ -108,11 +108,6 @@ class CarsharingEnv(gym.Env):
                  However, official evaluations of your agent are not allowed to
                  use this for learning.
         """
-#        self._take_action(action)
-#        self.status = self.env.step()
-#        reward = self._get_reward()
-#        ob = self.env.getState()
-#        episode_over = self.status != hfo_py.IN_GAME
         assert self.action_space.contains(action)
         demand=np.rint(self.D(action)).astype(int)
         #demand=self.D(action)
