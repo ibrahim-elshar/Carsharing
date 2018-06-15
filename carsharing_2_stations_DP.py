@@ -201,7 +201,7 @@ class CarsharingEnv():
                 w=np.minimum( bi_action + epsVector, bi_state); #print("w="+str(w)) 
                 w1=np.array([i for i in itertools.product(range(w[0]+1), repeat=2) if sum(i)==w[0]]) 
                 w2=np.array([i for i in itertools.product(range(w[1]+1), repeat=2) if sum(i)==w[1]])
-                probw=1./(len(w1) +len(w2))
+                probw=1./(len(w1) *len(w2))
                 for i1 in range(len(w1)):
                     for i2 in range(len(w2)):
                         temp=w1[i1]+w2[i2]                         
@@ -224,7 +224,7 @@ class CarsharingEnv():
                 value_action = {}
                 for action in self.actions: #allowable_actions[t, n]:
         #            print("action="+str(action))
-                    value_action[action] = self.val1(action, state,value, t+1)
+                    value_action[action] = self.val3(action, state,value, t+1)
         #            print("value_action="+str(value_action[self.alst.index(action.tolist())]))
                 value[t, state] = max(value_action.values())
         #        print("v("+str(state)+")="+str(value[t, self.slst.index(state_index)]))
