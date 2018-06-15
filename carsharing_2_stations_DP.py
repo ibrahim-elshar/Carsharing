@@ -224,7 +224,7 @@ class CarsharingEnv():
                 value_action = {}
                 for action in self.actions: #allowable_actions[t, n]:
         #            print("action="+str(action))
-                    value_action[action] = self.val3(action, state,value, t+1)
+                    value_action[action] = self.val1(action, state,value, t+1)
         #            print("value_action="+str(value_action[self.alst.index(action.tolist())]))
                 value[t, state] = max(value_action.values())
         #        print("v("+str(state)+")="+str(value[t, self.slst.index(state_index)]))
