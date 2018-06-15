@@ -11,13 +11,13 @@ import timeit
 import matplotlib.pyplot as plt
 #%matplotlib auto
 N_def=2
-MAX_CARS_def=20
-num_stages_def = 12
+MAX_CARS_def=10
+num_stages_def = 5
 pmin_def=np.array([1., 1.])
 pmax_def=np.array([10000., 10000.])
 #a_def=np.random.randint(30, 45, N_def).astype(float)
 #b_def=np.random.randint(-5, -1, N_def).astype(float)
-a_def=np.array([30., 30.])
+a_def=np.array([25., 25.])
 b_def=np.array([-5., -5.])
 discount_rate_def=0.99
 
@@ -170,6 +170,51 @@ class CarsharingEnv():
 #                print("returns="+str(returns))
 #                print("#################################")
         return returns
+    def val3(self, action, state, stateValue, t): # a car rented from a station can go back to the same station at the end o period
+        assert self.contains(action)
+#        print("action="+str(action))
+        price=self.PA(action)
+        returns = 0.0
+        low=-np.array([action, self.dB]).astype(int)
+#        print("price="+str(price))
+        high=-low+1
+#        print("low="+str(low))
+#        print("high="+str(high))
+        ranges=[]
+        prob=1   
+        for i in range(self.N):
+            ranges.append(range(low[i],high[i]))
+            prob *= 1./(high[i]-low[i]) 
+#        print("ranges="+str(ranges))
+#        print("prob="+str(prob))
+        v=list(itertools.product(*ranges))
+        bi_state=np.array([state, self.MAX_CARS-state])
+        bi_price=np.array([price, self.pB])
+        bi_action=np.array([action, self.dB])
+#        print("bi-price="+str(bi_price))
+#        print("bi_state="+str(bi_state))
+#        print("bi_action="+str(bi_action))
+#        print(v)
+        for i in range(len(v)):
+                epsVector=v[i]
+#                print("epsVector="+str(epsVector))
+                w=np.minimum( bi_action + epsVector, bi_state); #print("w="+str(w)) 
+                w1=np.array([i for i in itertools.product(range(w[0]+1), repeat=2) if sum(i)==w[0]]) 
+                w2=np.array([i for i in itertools.product(range(w[1]+1), repeat=2) if sum(i)==w[1]])
+                probw=1./(len(w1) +len(w2))
+                for i1 in range(len(w1)):
+                    for i2 in range(len(w2)):
+                        temp=w1[i1]+w2[i2]                         
+        #                print("temp="+str(temp))
+                        reward =sum(w * bi_price)
+#                        print("reward="+str(reward))
+                        newState = (state +temp[0] - w[0]).astype(int)
+#                        print("newState="+str(newState))
+                        returns +=prob * probw *(reward + self.discount_rate * stateValue[t, newState])
+#                        print("returns="+str(returns))
+        #                print("#################################")
+        return returns
+
     def solve(self):
 
         for t in range(self.num_stages - 2, -1, -1):
@@ -179,7 +224,7 @@ class CarsharingEnv():
                 value_action = {}
                 for action in self.actions: #allowable_actions[t, n]:
         #            print("action="+str(action))
-                    value_action[action] = self.val1(action, state,value, t+1)
+                    value_action[action] = self.val3(action, state,value, t+1)
         #            print("value_action="+str(value_action[self.alst.index(action.tolist())]))
                 value[t, state] = max(value_action.values())
         #        print("v("+str(state)+")="+str(value[t, self.slst.index(state_index)]))
