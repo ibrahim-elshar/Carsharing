@@ -18,15 +18,19 @@ class CarsharingEnv(gym.Env):
     N_def=5
     MAX_CARS_def=50
     pmin_def=np.empty(N_def); pmin_def.fill(3.0)
+#    T_def=np.random.randint(1,4, size=(N_def, N_def))
+#    T_def=np.ones((N_def, N_def)).astype(int)
     T_def=np.array([[2, 2, 3, 1, 3],
            [2, 3, 3, 1, 2],
            [3, 1, 2, 2, 2],
            [2, 3, 2, 2, 3],
            [1, 2, 3, 2, 2]])
-    a_def=np.random.randint(30, 45, N_def).astype(float)
-    b_def=np.random.randint(-5, -1, N_def).astype(float)
-#    a_def=np.array([31., 38., 37., 31., 42.])
-#    b_def=np.array([-3., -4., -5., -5., -3.])
+#    a_def=np.random.randint(30, 45, N_def).astype(float)
+#    b_def=np.random.randint(-5, -1, N_def).astype(float)
+#    a_def=np.array([30., 30.])
+#    b_def=np.array([-5., -5.])
+    a_def=np.array([31., 38., 37., 31., 42.])
+    b_def=np.array([-3., -4., -5., -5., -3.])
     def __init__(self, num_stations=N_def, num_cars=MAX_CARS_def, min_price=pmin_def, travel_time_btwn_stat=T_def, a=a_def, b=b_def):
         self.__version__ = "0.1.0"
         logging.info("CarsharingEnv - Version {}".format(self.__version__))
@@ -108,11 +112,7 @@ class CarsharingEnv(gym.Env):
                  However, official evaluations of your agent are not allowed to
                  use this for learning.
         """
-#        self._take_action(action)
-#        self.status = self.env.step()
-#        reward = self._get_reward()
-#        ob = self.env.getState()
-#        episode_over = self.status != hfo_py.IN_GAME
+
         assert self.action_space.contains(action)
         demand=np.rint(self.D(action)).astype(int)
         #demand=self.D(action)
@@ -132,14 +132,23 @@ class CarsharingEnv(gym.Env):
                     wij[j,:]=np.zeros(self.N)
         Twij=np.multiply(self.T, wij)    
         reward =np.around(sum(np.sum(Twij, axis=1) * action), 2)
-        newx = self.x  +self.s[:,0] - w
-        news=np.zeros((self.N,self.kmax))
+#        newx = self.x  +self.s[:,0] - w
+        temp=np.zeros(self.N)
         for i in range(self.N):
-            for k in range(self.kmax):
-                if k==(self.kmax-1):
-                    news[i,k]=np.sum([wij[j,i] for j in self.Nik[i][k]])
-                else:   
-                    news[i,k]=np.sum([wij[j,i] for j in self.Nik[i][k]]) + self.s[i,k+1]
+            temp[i]=np.sum([wij[j,i] for j in self.Nik[i][0]])
+        newx = self.x  +self.s[:,0] +temp - w
+        news=np.zeros((self.N,self.kmax))
+        if self.kmax>1:
+            for i in range(self.N):
+                for k in range(self.kmax):
+    #                print("k="+str(k))
+                    if k==0:
+                        news[i,k]= self.s[i,k+1] 
+                    elif k==(self.kmax-1):
+                        news[i,k]=np.sum([wij[j,i] for j in self.Nik[i][k]])                                 
+                    else:  
+#                        print("k="+str(k))
+                        news[i,k]=np.sum([wij[j,i] for j in self.Nik[i][k]]) + self.s[i,k+1]
 #        print("newS="+str(newS))
         self.x=newx
         self.s=news

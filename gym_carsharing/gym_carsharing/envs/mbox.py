@@ -1,11 +1,17 @@
 import numpy as np
 #import gym
 def randomize(n, num_terms):
-    num_terms = num_terms  - 1
-    a = np.random.randint(0, n, num_terms) 
-    a=np.append(a,[0,n])
-    a=np.sort(a)
-    return [a[i+1] - a[i] for i in range(len(a) - 1)]
+    if n == 1:
+        a=np.zeros(num_terms).astype(int)
+        i=np.random.randint(0, num_terms)
+        a[i]=1
+        return [a[x] for x in range(num_terms)]
+    else:
+        num_terms = num_terms  - 1
+        a = np.random.randint(0, n, num_terms) 
+        a=np.append(a,[0,n])
+        a=np.sort(a)
+        return [a[i+1] - a[i] for i in range(len(a) - 1)]
 
 
 class MBox():

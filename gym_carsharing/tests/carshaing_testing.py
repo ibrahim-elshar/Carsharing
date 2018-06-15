@@ -8,6 +8,7 @@ Created on Tue Jun 05 15:40:44 2018
 import gym
 import gym.spaces
 import gym_carsharing
+import numpy as np
 env = gym.make('Carsharing-v0')
 
 env.reset()
