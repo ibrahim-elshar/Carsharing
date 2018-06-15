@@ -112,7 +112,10 @@ class CarsharingEnv(gym.Env):
                  However, official evaluations of your agent are not allowed to
                  use this for learning.
         """
+<<<<<<< HEAD
 
+=======
+>>>>>>> cb35583a0df8101d824e1f8a32ff5fcad0383096
         assert self.action_space.contains(action)
         demand=np.rint(self.D(action)).astype(int)
         #demand=self.D(action)
