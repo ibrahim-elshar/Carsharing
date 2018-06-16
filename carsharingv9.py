@@ -223,6 +223,7 @@ def eval_policy(state, s, price, t ):
         print("###########################################")
     return returns
 
+
 start_time = timeit.default_timer()
 rrr= eval_policy(randomize(MAX_CARS,N),np.zeros((N,kmax)), pmin, 12) 
 elapsed = timeit.default_timer() - start_time                           
