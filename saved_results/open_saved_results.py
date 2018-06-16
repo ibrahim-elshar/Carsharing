@@ -335,6 +335,7 @@ ax.set_title("Price policy of stage 0")
 for i in range(len(env.states)):
     ax.annotate((env.states[i] , pr[i]), (env.states[i] , pr[i])) 
 
+
 ## First check solve() for which val is set
 #%matplotlib auto # copy %matplotlib and paste in the python console so the plots will be printed in a separate window.
 #%matplotlib inline
