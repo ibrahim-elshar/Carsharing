@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 14 10:05:55 2018
+Created on Sat Jun 16 17:12:50 2018
 
 @author: Ibrahim
 """
+
 
 import numpy as np
 import itertools
@@ -14,13 +15,13 @@ import os
 import pickle
 #%matplotlib auto
 N_def=2
-MAX_CARS_def=15
+MAX_CARS_def=10
 num_stages_def = 6
 pmin_def=np.array([1., 1.])
 pmax_def=np.array([10000., 10000.])
 #a_def=np.random.randint(30, 45, N_def).astype(float)
 #b_def=np.random.randint(-5, -1, N_def).astype(float)
-a_def=np.array([15., 30.])
+a_def=np.array([20., 20.])
 b_def=np.array([-5., -5.])
 discount_rate_def=0.99
 prob_ij_def=np.array([[0.1, 0.9],[0.05, 0.95]])  #probability of a customer going from station i to j
@@ -281,12 +282,13 @@ class StageStateData(dict):
         string = '{' + '\n'.join(entries).strip() + '}'
         return string   
 
-# plot a policy/state value matrix
+# Getting back the objects:
+#cwd = os.getcwd()
+#ofilename=(cwd+"\\saved_results\\2Stations_10MC_6T_10.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
+ofilename=("2Stations_10MC_6T_10.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
+with open(str(ofilename)+".pkl", 'rb') as f:  # Python 3: open(..., 'rb')
+    env, value, policy = pickle.load(f)
 
-    
-
-             
-env=CarsharingEnv()
 print("##########################################")
 print("Total number of stations = " + str(env.N))
 print("Max number of cars in the system = " + str(env.MAX_CARS))
@@ -349,15 +351,3 @@ for i in range(len(env.states)):
 ############################ val1
 ############################ val2
 
-
-# Saving the objects:
-cwd = os.getcwd() # gets current working directory from os
-filename=(cwd+"\\saved_results\\"+str(env.N) + "Stations_"+str(env.MAX_CARS)+"MC_" +str(env.num_stages)+"T_"+str(env.a[0])+"-" +str(env.a[1])+"a_"+str(env.b[0])+str(env.b[1])+" b_"+str(env.prob_ij[0,0])+"-" +str(env.prob_ij[1,1])+"P") 
-with open(str(filename)+".pkl", 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([env, value, policy], f)
-
-## Getting back the objects:
-#cwd = os.getcwd()
-#ofilename=(cwd+"\\saved_results\\2Stations_10MC_6T_10.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
-#with open(str(ofilename)+".pkl", 'rb') as f:  # Python 3: open(..., 'rb')
-#    env, value, policy = pickle.load(f)
