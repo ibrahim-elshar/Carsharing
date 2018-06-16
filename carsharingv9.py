@@ -151,7 +151,7 @@ Nik= []
 for i in range(N):
     Nik.append([np.where(T[:,i] == k) for k in range(1, kmax+1)])
 ##############################################################
-def eval_policy(state, s, price):
+def eval_policy(state, s, price, t ):
     # initailize total return
     returns = 0.0
     discount_rate=0.99
@@ -213,18 +213,19 @@ def eval_policy(state, s, price):
         print("newS="+str(newS))
         state=newState
         s=newS
-        returns_prime = returns
+#        returns_prime = returns
         returns += pow(discount_rate,n) * (rewards + 0.00001) #+ reward is perturbed to avoid stopping at the case where the reward is zero
         print("t=" +str(n)) 
         n += 1
-        if np.abs(returns - returns_prime) < 1e-10:
+        if n==t-1:#np.abs(returns - returns_prime) < 1e-10:
             flag=1
         print("returns=" +str(returns))
         print("###########################################")
     return returns
 
+
 start_time = timeit.default_timer()
-rrr= eval_policy(randomize(MAX_CARS,N),np.zeros((N,kmax)), pmin) 
+rrr= eval_policy(randomize(MAX_CARS,N),np.zeros((N,kmax)), pmin, 12) 
 elapsed = timeit.default_timer() - start_time                           
 print("Time="+str(elapsed))
 
