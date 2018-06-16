@@ -310,16 +310,6 @@ print("dmax=" + str(env.dmax))
 print("pB=" + str(env.pB))
 print("dB=" + str(env.dB))
 print("####################")
-#stateValue=np.zeros((4,env.MAX_CARS+1))
-value = StageStateData(env.num_stages, env.states)
-policy = StageStateData(env.num_stages, env.states)
-for i in  range(len(env.states)):
-    value[env.num_stages-1, i]=0
-#env.val(3, 5, value, 0)    
-start_time = timeit.default_timer()
-value, policy=env.solve()
-elapsed = timeit.default_timer() - start_time
-print("Time="+str(elapsed))
 #print(value)
 #print(policy)      
 
