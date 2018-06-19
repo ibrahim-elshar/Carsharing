@@ -15,13 +15,13 @@ import pickle
 from math import isclose
 #%matplotlib auto
 N_def=2
-MAX_CARS_def=50
-num_stages_def = 12
+MAX_CARS_def=20
+num_stages_def = 6
 pmin_def=np.array([1., 1.])
 pmax_def=np.array([10000., 10000.])
 #a_def=np.random.randint(30, 45, N_def).astype(float)
 #b_def=np.random.randint(-5, -1, N_def).astype(float)
-a_def=np.array([30., 60.])
+a_def=np.array([20., 20.])
 b_def=np.array([-5., -5.])
 discount_rate_def=0.99
 prob_ij_def=np.array([[0.1, 0.9],[0.05, 0.95]])  #probability of a customer going from station i to j
