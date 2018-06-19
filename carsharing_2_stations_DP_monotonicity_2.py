@@ -221,7 +221,6 @@ class StageStateData(dict):
         return string
 
 
-
              
 env=CarsharingEnv()
 print("##########################################")
