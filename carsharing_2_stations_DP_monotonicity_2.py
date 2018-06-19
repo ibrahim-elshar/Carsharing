@@ -14,13 +14,13 @@ import os
 import pickle
 #%matplotlib auto
 N_def=2
-MAX_CARS_def=10
-num_stages_def = 6
+MAX_CARS_def=20
+num_stages_def = 12
 pmin_def=np.array([1., 1.])
 pmax_def=np.array([10000., 10000.])
 #a_def=np.random.randint(30, 45, N_def).astype(float)
 #b_def=np.random.randint(-5, -1, N_def).astype(float)
-a_def=np.array([20., 20.])
+a_def=np.array([25., 25.])
 b_def=np.array([-5., -5.])
 discount_rate_def=0.99
 prob_ij_def=np.array([[0.1, 0.9],[0.05, 0.95]])  #probability of a customer going from station i to j
@@ -36,6 +36,19 @@ def randomize(n, num_terms):
         a=np.append(a,[0,n])
         a=np.sort(a)
         return [a[i+1] - a[i] for i in range(len(a) - 1)]
+
+def rang(x):
+   ends = np.cumsum(x)
+#   print("ends="+str(ends))
+   ranges = np.arange(ends[-1])
+#   print("ranges="+str(ranges))
+#   print("ends-x"+str(ends-x))
+#   print("np.repeat(ends-x, x)="+str(np.repeat(ends-x, x)))
+   rangess = ranges - np.repeat(ends-x, x)
+#   print("rangess="+str(rangess))
+   ww=np.repeat(x-1, x)
+#   print(ww)
+   return rangess, ww           
 
 
 class CarsharingEnv():
@@ -90,155 +103,54 @@ class CarsharingEnv():
         return (x >= self.dAmin).all() and (x <= self.dAmax).all()
     
     
-    def val1(self, action, state, stateValue, t): # a car rented from a station will go to the other station w.p 1
+    def Exp_Val(self, action, state, stateValue, t): # a car rented from a station can go back to the same station at the end o period
         assert self.contains(action)
-#        print("action="+str(action))
         price=self.PA(action)
         returns = 0.0
         low=-np.array([action, self.dB]).astype(int)
-#        print("price="+str(price))
         high=-low+1
-#        print("low="+str(low))
-#        print("high="+str(high))
         ranges=[]
-        prob=1   
+        probEps=1   
         for i in range(self.N):
             ranges.append(range(low[i],high[i]))
-            prob *= 1./(high[i]-low[i]) 
-#        print("ranges="+str(ranges))
-#        print("prob="+str(prob))
-        v=list(itertools.product(*ranges))
-        bi_state=np.array([state, self.MAX_CARS-state])
-        bi_price=np.array([price, self.pB])
-        bi_action=np.array([action, self.dB])
-#        print("bi-price="+str(bi_price))
-#        print("bi_state="+str(bi_state))
-#        print("bi_action="+str(bi_action))
-#        print(v)
-        for i in range(len(v)):
-                epsVector=v[i]
-                w=np.minimum( bi_action + epsVector, bi_state); #print("w="+str(w))
-                reward =sum(w * bi_price)
-#                print("reward="+str(reward))
-#                newState = (state +temp[0] - w[0]).astype(int)
-                newState = state + w[1] -w[0]
-#                print("newState="+str(newState))
-                returns +=prob * (reward + self.discount_rate * stateValue[t, newState])
-#                print("returns="+str(returns))
-#                print("#################################")
-        return returns
-
-    def val2(self, action, state, stateValue, t): # a car rented from a station can go back to the same station at the end o period
-        assert self.contains(action)
-#        print("action="+str(action))
-        price=self.PA(action)
-        returns = 0.0
-        low=-np.array([action, self.dB]).astype(int)
-#        print("price="+str(price))
-        high=-low+1
-#        print("low="+str(low))
-#        print("high="+str(high))
-        ranges=[]
-        prob=1   
-        for i in range(self.N):
-            ranges.append(range(low[i],high[i]))
-            prob *= 1./(high[i]-low[i]) 
-#        print("ranges="+str(ranges))
-#        print("prob="+str(prob))
-        v=list(itertools.product(*ranges))
-        bi_state=np.array([state, self.MAX_CARS-state])
-        bi_price=np.array([price, self.pB])
-        bi_action=np.array([action, self.dB])
-#        print("bi-price="+str(bi_price))
-#        print("bi_state="+str(bi_state))
-#        print("bi_action="+str(bi_action))
-#        print(v)
-        for i in range(len(v)):
-                epsVector=v[i]
-#                print("epsVector="+str(epsVector))
-                w=np.minimum( bi_action + epsVector, bi_state); #print("w="+str(w)) 
-                w1=np.array([i for i in itertools.product(range(w[0]+1), repeat=2) if sum(i)==w[0]]) 
-                w2=np.array([i for i in itertools.product(range(w[1]+1), repeat=2) if sum(i)==w[1]])
-                probw=1./(len(w1) *len(w2))
-                for i1 in range(len(w1)):
-                    for i2 in range(len(w2)):
-                        temp=w1[i1]+w2[i2]                         
-        #                print("temp="+str(temp))
-                        reward =sum(w * bi_price)
-#                        print("reward="+str(reward))
-                        newState = (state +temp[0] - w[0]).astype(int)
-#                        print("newState="+str(newState))
-                        returns +=prob * probw *(reward + self.discount_rate * stateValue[t, newState])
-#                        print("returns="+str(returns))
-        #                print("#################################")
-        return returns
-    def val3(self, action, state, stateValue, t): # a car rented from a station can go back to the same station at the end o period
-        assert self.contains(action)
-#        print("action="+str(action))
-        price=self.PA(action)
-        returns = 0.0
-        low=-np.array([action, self.dB]).astype(int)
-#        print("price="+str(price))
-        high=-low+1
-#        print("low="+str(low))
-#        print("high="+str(high))
-        ranges=[]
-        prob=1   
-        for i in range(self.N):
-            ranges.append(range(low[i],high[i]))
-            prob *= 1./(high[i]-low[i]) 
-#        print("ranges="+str(ranges))
-#        print("prob="+str(prob))
-        v=list(itertools.product(*ranges))
-        bi_state=np.array([state, self.MAX_CARS-state])
-        bi_price=np.array([price, self.pB])
-        bi_action=np.array([action, self.dB])
-#        print("bi-price="+str(bi_price))
-#        print("bi_state="+str(bi_state))
-#        print("bi_action="+str(bi_action))
-#        print(v)
-        for i in range(len(v)):
-                epsVector=v[i]
-#                print("epsVector="+str(epsVector))
-                w=np.minimum( bi_action + epsVector, bi_state); #print("w="+str(w)) 
-                w1=np.array([i for i in itertools.product(range(w[0]+1), repeat=2) if sum(i)==w[0]]) 
-                w2=np.array([i for i in itertools.product(range(w[1]+1), repeat=2) if sum(i)==w[1]])
-                bn1 = ss.binom(w[0], self.prob_ij[0,0])
-                bn2 = ss.binom(w[1], self.prob_ij[1,1])
-                for i1 in range(len(w1)):
-                    for i2 in range(len(w2)):
-                        temp=w1[i1]+w2[i2]  
-                        probw= bn1.pmf(w1[i1,0]) * bn2.pmf(w2[i2,1])
-        #                print("temp="+str(temp))
-                        reward =sum(w * bi_price)
-#                        print("reward="+str(reward))
-                        newState = (state +temp[0] - w[0]).astype(int)
-#                        print("newState="+str(newState))
-                        returns +=prob * probw *(reward + self.discount_rate * stateValue[t, newState])
-#                        print("returns="+str(returns))
-        #                print("#################################")
-        return returns
+            probEps *= 1./(high[i]-low[i]) 
+        v1=np.array(list(ranges[0]))
+        v2=np.array(list(ranges[1]))
+        wA=np.minimum( action + v1, state)
+        wB=np.minimum( self.dB + v2, self.MAX_CARS-state)
+        w1,wArp=rang(wA+1)
+        w2,wBrp=rang(wB+1)
+        temp=w1[:, None] + w2
+        temp = temp.ravel()
+        b1 = ss.binom.pmf(w1, wArp, self.prob_ij[0,0])
+        b2 = ss.binom.pmf(w2, wBrp,  self.prob_ij[1,0])
+        prob_array = b1[:, None] * b2 *probEps
+        prob = prob_array.ravel()
+        wArpp=np.repeat(wArp, len(w2))
+        newState =temp + state -wArpp
+        reward= (wArp*price)[:, None] + (wBrp*env.pB) 
+        reward=reward.ravel()
+        ar=stateValue[t,:]
+        vl=ar[newState]
+#        vl=stateValue[t,newState]
+        returns = sum(prob*list(reward + self.discount_rate * vl))
+        return returns    
     
-    
-    def solve(self):
-
+    def solve(self):       
         for t in range(self.num_stages - 2, -1, -1):
-        #    print("t="+str(t))
             for state in self.states:
-        #        print("state="+str(state))
                 value_action = {}
-                for action in self.actions: #allowable_actions[t, n]:
-        #            print("action="+str(action))
-                    value_action[action] = self.val3(action, state,value, t+1)
-        #            print("value_action="+str(value_action[self.alst.index(action.tolist())]))
+                for action in self.actions: 
+                    if (state>0) and (action < min(policy[t, state-1])): 
+                        value_action[action]=0
+                        continue
+                    value_action[action] = self.Exp_Val(action, state,value, t+1)
                 value[t, state] = max(value_action.values())
-        #        print("v("+str(state)+")="+str(value[t, self.slst.index(state_index)]))
                 policy[t, state] =  list (
                 x for x in self.actions
-                #if isclose(value_action[x], value[t,state])
+#                if isclose(value_action[x], value[t,state])
                 if np.sum(np.abs(value_action[x] - value[t,state])) < 1e-5
                 )
-        #        print("Policy="+str( policy[t, self.slst.index(state_index)]))
         return value, policy
     
 
@@ -247,7 +159,6 @@ def printValue(num_stages, x, data, labels):
     figureIndex += 1  
     for t in range(num_stages-1):
         fig, ax = plt.subplots()
-#        plt.figure(figureIndex)  
         ax.scatter(x, [data[t, i] for i in range(len(x))])
         ax.set_xlabel(labels[0])
         ax.set_ylabel(labels[1])
@@ -259,31 +170,57 @@ def printPolicy(num_stages, x, data, labels):
     figureIndex += 1  
     for t in range(num_stages-1):
         fig, ax = plt.subplots()
-#        plt.figure(figureIndex)  
-        ax.scatter(x, [data[t, i][0] for i in range(len(x))])
+        ax.scatter(x, [min(data[t, i]) for i in range(len(x))])
         ax.set_xlabel(labels[0])
         ax.set_ylabel(labels[1])
         ax.set_title(labels[2]+ str(t))
         for i in range(len(x)):
-                    ax.annotate((x[i] , data[t, i][0]), (x[i] , data[t, i][0])) 
+            ax.annotate((x[i] , min(data[t, i])), (x[i] , min(data[t, i]))) 
         plt.show()
         figureIndex += 1            
     
 class StageStateData(dict):
     def __init__(self, number_of_stages, states):
         self.number_of_stages = number_of_stages
-        self.states = states
+        self.states = set(states)
+
+    def __setitem__(self, key, value):
+        try:
+            t, n = key
+        except ValueError:
+            if len(key) != 2:
+                raise ValueError('Incorrect number of indices')
+            else:
+                raise
+
+        if ((n not in self.states) or
+                (t not in range(self.number_of_stages))):
+            raise KeyError('Invalid stage or state')
+        super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        try:
+            t, n = key
+        except ValueError:
+            if len(key) != 2:
+                raise ValueError('Incorrect number of indices')
+            else:
+                raise
+        if isinstance(n, slice):  
+             return np.array([self[ii] for ii in zip(itertools.repeat(t),range(env.MAX_CARS+1))])
+        elif isinstance(n, np.ndarray):
+            return np.array([self[ii] for ii in zip(itertools.repeat(t),n)])
+        else:
+            return super().__getitem__(key)
 
     def __repr__(self):
         entries = []
         for (t, n), v in sorted(self.items()):
-            entries.append(" (stage: {0}, state: {1}): {2}".format(t, self.states[n], v))
+            entries.append(" (stage: {0}, state: {1}): {2}".format(t, n, v))
         string = '{' + '\n'.join(entries).strip() + '}'
-        return string   
+        return string
 
-# plot a policy/state value matrix
 
-    
 
              
 env=CarsharingEnv()
@@ -308,28 +245,25 @@ print("dmax=" + str(env.dmax))
 print("pB=" + str(env.pB))
 print("dB=" + str(env.dB))
 print("####################")
-#stateValue=np.zeros((4,env.MAX_CARS+1))
 value = StageStateData(env.num_stages, env.states)
 policy = StageStateData(env.num_stages, env.states)
 for i in  range(len(env.states)):
     value[env.num_stages-1, i]=0
-#env.val(3, 5, value, 0)    
+#value = np.zeros((env.num_stages, env.MAX_CARS+1))
+#policy = np.zeros((env.num_stages, env.MAX_CARS+1))
 start_time = timeit.default_timer()
 value, policy=env.solve()
 elapsed_time = timeit.default_timer() - start_time
 print("Time="+str(elapsed_time))
 #print(value)
 #print(policy)      
-
-#plt.scatter(env.states,[policy[0, i][0] for i in range(len(env.states))])
-#plt.show()
 figureIndex = 0
 printValue(2, env.states,value, ["# of cars in first location","Expected returns","Expected returns in stage "]) #env.num_stages
 printPolicy(2, env.states,policy, ["# of cars in first location","action"," Demand policy of stage "]) #env.num_stages                                             
 plt.show()
 dd=np.zeros(len(env.states))
 for i in env.states:
-    dd[i]=(policy[0,i][0])
+    dd[i]=(min(policy[0,i]))
 pr=np.zeros(len(env.states))
 for i in env.states:
     pr[i]=env.PA(dd[i])

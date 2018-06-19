@@ -16,12 +16,12 @@ from math import isclose
 #%matplotlib auto
 N_def=2
 MAX_CARS_def=20
-num_stages_def = 6
+num_stages_def = 12
 pmin_def=np.array([1., 1.])
 pmax_def=np.array([10000., 10000.])
 #a_def=np.random.randint(30, 45, N_def).astype(float)
 #b_def=np.random.randint(-5, -1, N_def).astype(float)
-a_def=np.array([20., 20.])
+a_def=np.array([25., 25.])
 b_def=np.array([-5., -5.])
 discount_rate_def=0.99
 prob_ij_def=np.array([[0.1, 0.9],[0.05, 0.95]])  #probability of a customer going from station i to j
@@ -60,7 +60,23 @@ def rang(x):
    ww=np.repeat(x-1, x)
 #   print(ww)
    return rangess, ww           
+def st(B):
+     # Sort B based on first row
+    sB = B[:,np.argsort(B[0,:])]
 
+    # col mask of where each group ends
+    col_mask = np.append(np.diff(sB[0,:],axis=0)!=0,[True])
+
+    # Get cummulative summations and then DIFF to get summations for each group
+    cumsum_grps = sB.cumsum(1)[1:,col_mask]
+    sum_grps = np.diff(cumsum_grps,axis=1)
+
+    # Concatenate the first unique col with its counts
+    counts = np.concatenate((cumsum_grps[:,0][None].T,sum_grps),axis=1)
+
+    # Concatenate the first row of the input array for final output
+    out = np.concatenate((sB[0,col_mask][None,:],counts),axis=0)
+    return out
 
 class CarsharingEnv():
     
@@ -296,8 +312,12 @@ class CarsharingEnv():
 #        print(len(reward))
 #        print(len(newState))
 #        print(newState)
-        vl=np.array([stateValue[t,x] for x in newState])
+#        vl=np.array([stateValue[t,x] for x in newState])
+#        vl= stateValue[t, newState]
+        ar=stateValue[t,:]
+        vl=ar[newState]
         returns = sum(prob*list(reward + self.discount_rate * vl))
+
 #        print(returns)
 
         return returns    
@@ -354,17 +374,82 @@ def printPolicy(num_stages, x, data, labels):
         plt.show()
         figureIndex += 1            
     
+#class StageStateData(dict):
+#    def __init__(self, number_of_stages, states):
+#        self.number_of_stages = number_of_stages
+#        self.states = states
+#
+#    def __repr__(self):
+#        entries = []
+#        for (t, n), v in sorted(self.items()):
+#            entries.append(" (stage: {0}, state: {1}): {2}".format(t, self.states[n], v))
+#        string = '{' + '\n'.join(entries).strip() + '}'
+#        return string   
 class StageStateData(dict):
     def __init__(self, number_of_stages, states):
         self.number_of_stages = number_of_stages
-        self.states = states
+        self.states = set(states)
+
+    def __setitem__(self, key, value):
+        try:
+            t, n = key
+        except ValueError:
+            if len(key) != 2:
+                raise ValueError('Incorrect number of indices')
+            else:
+                raise
+
+        if ((n not in self.states) or
+                (t not in range(self.number_of_stages))):
+            raise KeyError('Invalid stage or state')
+        super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        try:
+            t, n = key
+        except ValueError:
+            if len(key) != 2:
+                raise ValueError('Incorrect number of indices')
+            else:
+                raise
+        if isinstance(n, slice):
+#            sliced = {}
+#            start_dt = n.start
+#            stop_dt = n.stop
+#            step = n.step or 1
+#            internal_keys = sorted(self.keys())
+#            internal_keys=internal_keys
+#            print(internal_keys)
+#            if start_dt is None:
+#                start_index = 0
+#            else:
+#                start_index = internal_keys.index(start_dt)
+#            end_index = internal_keys.index(stop_dt)
+#            for i in range(start_index, end_index, step):
+#                sliced.update({internal_keys[i]: self[internal_keys[i]]})
+#            return sliced
+#             print(self.keys())
+             return np.array([self[ii] for ii in zip(itertools.repeat(t),range(env.MAX_CARS+1))])
+             
+#        if ((n not in self.states) or
+#                (t not in range(self.number_of_stages))):
+#            raise KeyError('Invalid stage or state')
+
+#        if key not in self:
+#            return None
+        elif isinstance(n, np.ndarray):
+            return np.array([self[ii] for ii in zip(itertools.repeat(t),n)])
+            
+        
+        else:
+            return super().__getitem__(key)
 
     def __repr__(self):
         entries = []
         for (t, n), v in sorted(self.items()):
-            entries.append(" (stage: {0}, state: {1}): {2}".format(t, self.states[n], v))
+            entries.append(" (stage: {0}, state: {1}): {2}".format(t, n, v))
         string = '{' + '\n'.join(entries).strip() + '}'
-        return string   
+        return string
 
 # plot a policy/state value matrix
 

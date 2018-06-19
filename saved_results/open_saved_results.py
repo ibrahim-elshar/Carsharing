@@ -285,9 +285,11 @@ class StageStateData(dict):
 # Getting back the objects:
 #cwd = os.getcwd()
 #ofilename=(cwd+"\\saved_results\\2Stations_10MC_6T_10.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
-ofilename=("2Stations_10MC_6T_10.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
+ofilename=("2Stations_10MC_6T_20.0-20.0a_-5.0-5.0 b_0.1-0.95P")  
 with open(str(ofilename)+".pkl", 'rb') as f:  # Python 3: open(..., 'rb')
-    env, value, policy = pickle.load(f)
+    env, value, policy, elapsed_time = pickle.load(f)
+#    env, value, policy = pickle.load(f)
+
 
 print("##########################################")
 print("Total number of stations = " + str(env.N))
